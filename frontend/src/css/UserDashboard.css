@@ -1,0 +1,382 @@
+.user-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-nav {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand h2 {
+  color: #667eea;
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-info span {
+  color: #333;
+  font-weight: 500;
+}
+
+.logout-btn {
+  padding: 0.5rem 1.2rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+.user-dashboard-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.voting-header, .results-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.voting-header h1, .results-header h1 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.voting-header p, .results-header p {
+  color: rgba(255,255,255,0.9);
+}
+
+.candidates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.candidate-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.candidate-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.candidate-card.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f2ff 0%, #ffffff 100%);
+}
+
+.candidate-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+}
+
+.candidate-card h3 {
+  text-align: center;
+  margin: 0.5rem 0;
+  color: #333;
+}
+
+.party {
+  text-align: center;
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.agenda {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.agenda strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.agenda ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.agenda li {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4caf50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.vote-action {
+  text-align: center;
+}
+
+.vote-now-btn {
+  padding: 1rem 3rem;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.vote-now-btn:not(.disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+}
+
+.vote-now-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.results-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.results-list {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.result-row {
+  margin-bottom: 1.5rem;
+}
+
+.result-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.party-name {
+  margin-left: 8px;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.vote-numbers {
+  text-align: right;
+}
+
+.percentage {
+  margin-left: 10px;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.progress-bar {
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 30px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  color: white;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+.thank-you-message {
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.thank-you-message h3 {
+  color: #2e7d32;
+  margin-bottom: 0.5rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirmation-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirmed-candidate {
+  background: #f0f2ff;
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.confirmed-candidate strong {
+  display: block;
+  font-size: 1.2rem;
+  color: #667eea;
+}
+
+.warning {
+  color: #ff9800;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.cancel-btn, .confirm-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cancel-btn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.confirm-btn {
+  background: #4caf50;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .user-nav {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .candidates-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-stats {
+    grid-template-columns: 1fr;
+  }
+}

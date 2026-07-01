@@ -1,283 +1,321 @@
+// pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
-  const [votes, setVotes] = useState({
-    candidate1: 1247,
-    candidate2: 983,
-    candidate3: 2156,
-    candidate4: 842
+  const navigate = useNavigate();
+  const [elections, setElections] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newElection, setNewElection] = useState({
+    title: '',
+    candidates: [{ name: '', party: '', symbol: '' }]
   });
-  const [users, setUsers] = useState([]);
-  const [electionStatus, setElectionStatus] = useState('active');
-  const [selectedTab, setSelectedTab] = useState('overview');
-  const [announcements, setAnnouncements] = useState([]);
-  const [newAnnouncement, setNewAnnouncement] = useState('');
+  const [editingElection, setEditingElection] = useState(null);
 
-  const candidates = [
-    { id: 'candidate1', name: 'Sarah Johnson', party: 'Progressive Party', color: '#4CAF50' },
-    { id: 'candidate2', name: 'Michael Chen', party: 'Unity Alliance', color: '#2196F3' },
-    { id: 'candidate3', name: 'Patricia Williams', party: 'Democratic Front', color: '#9C27B0' },
-    { id: 'candidate4', name: 'Robert Martinez', party: 'Liberty Party', color: '#FF9800' }
-  ];
-
+  // Load elections from localStorage
   useEffect(() => {
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    setUsers(registeredUsers);
-    
-    const savedAnnouncements = JSON.parse(localStorage.getItem('announcements') || '[]');
-    setAnnouncements(savedAnnouncements);
+    const savedElections = JSON.parse(localStorage.getItem('elections') || '[]');
+    setElections(savedElections);
   }, []);
 
-  const getTotalVotes = () => Object.values(votes).reduce((a, b) => a + b, 0);
-  const getTurnout = () => ((getTotalVotes() / (users.length || 1)) * 100).toFixed(1);
-  
-  const getLeadingCandidate = () => {
-    const entries = Object.entries(votes);
-    const leading = entries.reduce((max, [id, count]) => 
-      count > max.count ? { id, count } : max, 
-      { id: null, count: 0 }
-    );
-    return candidates.find(c => c.id === leading.id);
+  const handleLogout = () => {
+    onLogout();
+    navigate('/');
   };
 
-  const resetElection = () => {
-    if (window.confirm('Are you sure you want to reset all votes? This action cannot be undone!')) {
-      setVotes({
-        candidate1: 0,
-        candidate2: 0,
-        candidate3: 0,
-        candidate4: 0
-      });
-      localStorage.clear();
-      alert('Election has been reset successfully!');
+  const handleAddCandidate = () => {
+    setNewElection({
+      ...newElection,
+      candidates: [...newElection.candidates, { name: '', party: '', symbol: '' }]
+    });
+  };
+
+  const handleRemoveCandidate = (index) => {
+    if (newElection.candidates.length > 1) {
+      const updatedCandidates = newElection.candidates.filter((_, i) => i !== index);
+      setNewElection({ ...newElection, candidates: updatedCandidates });
     }
   };
 
-  const addAnnouncement = () => {
-    if (newAnnouncement.trim()) {
-      const announcement = {
-        id: Date.now(),
-        text: newAnnouncement,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      };
-      const updated = [announcement, ...announcements];
-      setAnnouncements(updated);
-      localStorage.setItem('announcements', JSON.stringify(updated));
-      setNewAnnouncement('');
+  const handleCandidateChange = (index, field, value) => {
+    const updatedCandidates = newElection.candidates.map((candidate, i) => {
+      if (i === index) {
+        return { ...candidate, [field]: value };
+      }
+      return candidate;
+    });
+    setNewElection({ ...newElection, candidates: updatedCandidates });
+  };
+
+  const handleCreateElection = () => {
+    if (!newElection.title.trim()) {
+      alert('Please enter election title');
+      return;
+    }
+
+    const validCandidates = newElection.candidates.filter(c => c.name.trim());
+    if (validCandidates.length === 0) {
+      alert('Please add at least one candidate');
+      return;
+    }
+
+    const election = {
+      id: Date.now(),
+      title: newElection.title,
+      candidates: validCandidates,
+      createdAt: new Date().toLocaleDateString(),
+      status: 'active',
+      totalVotes: 0
+    };
+
+    const updatedElections = [...elections, election];
+    setElections(updatedElections);
+    localStorage.setItem('elections', JSON.stringify(updatedElections));
+
+    setNewElection({
+      title: '',
+      candidates: [{ name: '', party: '', symbol: '' }]
+    });
+    setShowCreateForm(false);
+    alert('Election created successfully!');
+  };
+
+  const handleDeleteElection = (electionId) => {
+    if (window.confirm('Are you sure you want to delete this election?')) {
+      const updatedElections = elections.filter(e => e.id !== electionId);
+      setElections(updatedElections);
+      localStorage.setItem('elections', JSON.stringify(updatedElections));
     }
   };
 
-  const deleteAnnouncement = (id) => {
-    const updated = announcements.filter(a => a.id !== id);
-    setAnnouncements(updated);
-    localStorage.setItem('announcements', JSON.stringify(updated));
-  };
-
-  const endElection = () => {
-    if (window.confirm('Are you sure you want to end the election?')) {
-      setElectionStatus('ended');
-      alert('Election has been ended!');
+  const handleEndElection = (electionId) => {
+    if (window.confirm('Are you sure you want to end this election?')) {
+      const updatedElections = elections.map(e => 
+        e.id === electionId ? { ...e, status: 'ended' } : e
+      );
+      setElections(updatedElections);
+      localStorage.setItem('elections', JSON.stringify(updatedElections));
     }
   };
 
-  const startElection = () => {
-    setElectionStatus('active');
-    alert('Election has been started!');
+  const getCandidateCount = (election) => {
+    return election.candidates ? election.candidates.length : 0;
   };
 
   return (
     <div className="admin-dashboard">
-      <nav className="admin-nav">
-        <div className="nav-brand">
-          <h2>👑 VoteSphere - Admin Control Panel</h2>
-          <span className={`election-status-badge ${electionStatus}`}>
-            {electionStatus === 'active' ? '● LIVE' : '● ENDED'}
-          </span>
+      <header className="admin-header">
+        <div className="header-content">
+          <h1>🗳️ E-Voting Made Easy</h1>
+          <div className="admin-info">
+            <span className="admin-welcome">Welcome, {user?.name || 'Admin'}</span>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
+          </div>
         </div>
-        <div className="admin-info">
-          <span>👋 Welcome, {user?.name}</span>
-          <button onClick={onLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+      </header>
 
-      <div className="admin-tabs">
-        <button className={`tab ${selectedTab === 'overview' ? 'active' : ''}`} onClick={() => setSelectedTab('overview')}>
-          📊 Overview
-        </button>
-        <button className={`tab ${selectedTab === 'candidates' ? 'active' : ''}`} onClick={() => setSelectedTab('candidates')}>
-          👥 Candidates
-        </button>
-        <button className={`tab ${selectedTab === 'voters' ? 'active' : ''}`} onClick={() => setSelectedTab('voters')}>
-          🗳️ Voters
-        </button>
-        <button className={`tab ${selectedTab === 'settings' ? 'active' : ''}`} onClick={() => setSelectedTab('settings')}>
-          ⚙️ Settings
-        </button>
-      </div>
+      <div className="dashboard-content">
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <nav className="sidebar-nav">
+            <ul>
+              <li className="active">
+                <span className="nav-icon">📊</span>
+                Dashboard
+              </li>
+              <li>
+                <span className="nav-icon">🗳️</span>
+                All Elections
+              </li>
+              <li>
+                <span className="nav-icon">👥</span>
+                Voters
+              </li>
+              <li>
+                <span className="nav-icon">📈</span>
+                Results
+              </li>
+              <li>
+                <span className="nav-icon">⚙️</span>
+                Settings
+              </li>
+            </ul>
+          </nav>
+        </aside>
 
-      <div className="admin-content">
-        {selectedTab === 'overview' && (
-          <div className="overview-section">
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon">🗳️</div>
-                <div className="stat-info">
-                  <span className="stat-label">Total Votes</span>
-                  <span className="stat-value">{getTotalVotes()}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">👥</div>
-                <div className="stat-info">
-                  <span className="stat-label">Registered Voters</span>
-                  <span className="stat-value">{users.length}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">📊</div>
-                <div className="stat-info">
-                  <span className="stat-label">Turnout Rate</span>
-                  <span className="stat-value">{getTurnout()}%</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">🏆</div>
-                <div className="stat-info">
-                  <span className="stat-label">Leading Candidate</span>
-                  <span className="stat-value">{getLeadingCandidate()?.name || 'N/A'}</span>
-                </div>
-              </div>
+        {/* Main Content */}
+        <main className="main-content">
+          {/* Elections List */}
+          <section className="elections-section">
+            <div className="section-header">
+              <h2>All Elections</h2>
+              <button 
+                className="create-election-btn"
+                onClick={() => setShowCreateForm(true)}
+              >
+                + Create New Election
+              </button>
             </div>
 
-            <div className="results-panel">
-              <h3>Live Results</h3>
-              {candidates.map(candidate => {
-                const voteCount = votes[candidate.id];
-                const percentage = getTotalVotes() === 0 ? 0 : ((voteCount / getTotalVotes()) * 100).toFixed(1);
-                return (
-                  <div key={candidate.id} className="result-item">
-                    <div className="result-header">
-                      <div>
-                        <strong>{candidate.name}</strong>
-                        <span className="party">{candidate.party}</span>
+            <div className="elections-list">
+              {elections.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">🗳️</div>
+                  <p>No elections created yet</p>
+                  <p className="empty-sub">Click "Create New Election" to get started</p>
+                </div>
+              ) : (
+                elections.map((election) => (
+                  <div key={election.id} className="election-card">
+                    <div className="election-info">
+                      <h3>{election.title}</h3>
+                      <div className="election-meta">
+                        <span className="election-date">📅 {election.createdAt}</span>
+                        <span className={`election-status ${election.status}`}>
+                          {election.status === 'active' ? '🟢 Active' : '🔴 Ended'}
+                        </span>
+                        <span className="candidate-count">
+                          👤 {getCandidateCount(election)} Candidates
+                        </span>
+                        <span className="vote-count">
+                          📊 {election.totalVotes || 0} Votes
+                        </span>
                       </div>
-                      <span>{voteCount} votes ({percentage}%)</span>
+                      <div className="candidates-preview">
+                        <strong>Candidates:</strong>
+                        {election.candidates && election.candidates.map((c, idx) => (
+                          <span key={idx} className="candidate-tag">
+                            {c.name} {c.party && `(${c.party})`}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${percentage}%`, backgroundColor: candidate.color }}></div>
+                    <div className="election-actions">
+                      {election.status === 'active' && (
+                        <button 
+                          className="end-btn"
+                          onClick={() => handleEndElection(election.id)}
+                        >
+                          End Election
+                        </button>
+                      )}
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleDeleteElection(election.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
+          </section>
 
-            <div className="announcements-panel">
-              <h3>Announcements</h3>
-              <div className="add-announcement">
-                <input
-                  type="text"
-                  placeholder="New announcement..."
-                  value={newAnnouncement}
-                  onChange={(e) => setNewAnnouncement(e.target.value)}
-                />
-                <button onClick={addAnnouncement}>Post</button>
-              </div>
-              <div className="announcements-list">
-                {announcements.map(ann => (
-                  <div key={ann.id} className="announcement-item">
-                    <p>{ann.text}</p>
-                    <small>{ann.date} at {ann.time}</small>
-                    <button className="delete-announcement" onClick={() => deleteAnnouncement(ann.id)}>×</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'candidates' && (
-          <div className="candidates-section">
-            <h3>Manage Candidates</h3>
-            <div className="candidates-table">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Party</th>
-                    <th>Votes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {candidates.map(candidate => (
-                    <tr key={candidate.id}>
-                      <td><strong>{candidate.name}</strong></td>
-                      <td>{candidate.party}</td>
-                      <td>{votes[candidate.id]}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'voters' && (
-          <div className="voters-section">
-            <h3>Registered Voters</h3>
-            <div className="voters-table">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Voted</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((userItem, idx) => (
-                    <tr key={idx}>
-                      <td>{userItem.name}</td>
-                      <td>{userItem.email}</td>
-                      <td><span className="status-badge active">Active</span></td>
-                      <td>{localStorage.getItem(`voted_${userItem.email}`) ? '✅ Yes' : '❌ No'}</td>
-                    </tr>
-                  ))}
-                  {users.length === 0 && (
-                    <tr>
-                      <td colSpan="4" style={{ textAlign: 'center' }}>No registered users yet</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'settings' && (
-          <div className="settings-section">
-            <div className="settings-card">
-              <h3>Election Controls</h3>
-              <div className="setting-item">
-                <label>Election Status</label>
-                <div className="status-controls">
-                  <button className={`status-btn ${electionStatus === 'active' ? 'active' : ''}`} onClick={startElection}>
-                    Start Election
+          {/* Create Election Modal */}
+          {showCreateForm && (
+            <div className="modal-overlay" onClick={() => setShowCreateForm(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Create New Election</h2>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    ✕
                   </button>
-                  <button className={`status-btn ${electionStatus === 'ended' ? 'ended' : ''}`} onClick={endElection}>
-                    End Election
+                </div>
+
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Election Title</label>
+                    <input
+                      type="text"
+                      value={newElection.title}
+                      onChange={(e) => setNewElection({ ...newElection, title: e.target.value })}
+                      placeholder="Enter election title"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="candidates-section">
+                    <h3>Candidates</h3>
+                    {newElection.candidates.map((candidate, index) => (
+                      <div key={index} className="candidate-form">
+                        <div className="candidate-header">
+                          <h4>Candidate {index + 1}</h4>
+                          {newElection.candidates.length > 1 && (
+                            <button 
+                              className="remove-candidate-btn"
+                              onClick={() => handleRemoveCandidate(index)}
+                            >
+                              ✕ Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Candidate Name</label>
+                            <input
+                              type="text"
+                              value={candidate.name}
+                              onChange={(e) => handleCandidateChange(index, 'name', e.target.value)}
+                              placeholder="Enter candidate name"
+                              className="form-input"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Party Name</label>
+                            <input
+                              type="text"
+                              value={candidate.party}
+                              onChange={(e) => handleCandidateChange(index, 'party', e.target.value)}
+                              placeholder="Enter party name"
+                              className="form-input"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Symbol</label>
+                            <input
+                              type="text"
+                              value={candidate.symbol}
+                              onChange={(e) => handleCandidateChange(index, 'symbol', e.target.value)}
+                              placeholder="Enter symbol (e.g., 🌿, 🦁)"
+                              className="form-input"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button 
+                      className="add-candidate-btn"
+                      onClick={handleAddCandidate}
+                    >
+                      + Add Candidate
+                    </button>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button 
+                    className="btn-secondary"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="btn-primary"
+                    onClick={handleCreateElection}
+                  >
+                    Create Election
                   </button>
                 </div>
               </div>
-              <div className="setting-item">
-                <label>Danger Zone</label>
-                <button className="reset-btn" onClick={resetElection}>Reset Entire Election</button>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </main>
       </div>
     </div>
   );

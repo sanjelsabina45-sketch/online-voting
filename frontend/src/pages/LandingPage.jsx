@@ -1,8 +1,26 @@
 // pages/LandingPage.jsx
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../css/LandingPage.css';
 
 const LandingPage = ({ isAuthenticated }) => {
+  const navigate = useNavigate();
+
+  const handleDashboardClick = () => {
+    const role = localStorage.getItem('userRole');
+    if (role === 'admin') {
+      navigate('/admin-dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userRole');
+    window.location.reload();
+  };
+
   return (
     <div className="landing-container">
       <nav className="landing-nav">
@@ -20,7 +38,14 @@ const LandingPage = ({ isAuthenticated }) => {
               <Link to="/signup" className="nav-btn signup-btn">Sign Up</Link>
             </>
           ) : (
-            <Link to="/dashboard" className="nav-btn dashboard-btn">Dashboard</Link>
+            <>
+              <button onClick={handleDashboardClick} className="nav-btn dashboard-btn">
+                Dashboard
+              </button>
+              <button onClick={handleLogout} className="nav-btn logout-btn">
+                Logout
+              </button>
+            </>
           )}
         </div>
       </nav>
@@ -29,10 +54,16 @@ const LandingPage = ({ isAuthenticated }) => {
         <div className="hero-content">
           <h1>Secure Online Voting Platform</h1>
           <p>Cast your vote from anywhere, anytime. Your voice matters in shaping the future.</p>
-          {!isAuthenticated && (
+          {!isAuthenticated ? (
             <div className="hero-buttons">
               <Link to="/signup" className="hero-btn primary">Get Started</Link>
               <Link to="/login" className="hero-btn secondary">Login</Link>
+            </div>
+          ) : (
+            <div className="hero-buttons">
+              <button onClick={handleDashboardClick} className="hero-btn primary">
+                Go to Dashboard
+              </button>
             </div>
           )}
         </div>
@@ -88,7 +119,7 @@ const LandingPage = ({ isAuthenticated }) => {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-section">
-            <h4>VoteSphere</h4>
+            <h4>E Vote</h4>
             <p>Empowering democracy through secure online voting.</p>
           </div>
           <div className="footer-section">
@@ -99,7 +130,7 @@ const LandingPage = ({ isAuthenticated }) => {
           </div>
           <div className="footer-section">
             <h4>Contact</h4>
-            <p>📧 support@votesphere.com</p>
+            <p>📧 support@evote.com</p>
             <p>📞 +1 (555) 123-4567</p>
           </div>
           <div className="footer-section">
